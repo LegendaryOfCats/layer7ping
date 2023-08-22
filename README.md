@@ -14,7 +14,7 @@ l7ping (http(s)://)duckduckgo.com (get/head)
 ## Example usage
 
 ```
-> l7ping google.com
+> l7ping duckduckgo.com
 layer7ping v1.2 - Copyright (c) 2023 NetworkLayer
 
 Establishing connection to https://duckduckgo.com using GET
