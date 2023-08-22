@@ -41,7 +41,7 @@ namespace l7ping
             {
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestVersion = HttpVersion.Version20;
-                Console.WriteLine($"layer7ping v1.4 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
+                Console.WriteLine($"layer7ping v1.5 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
 
                 try
                 {
@@ -76,11 +76,12 @@ namespace l7ping
 
                         ConsoleColor statusCodeColor = GetStatusCodeColor(response.StatusCode);
 
-                        PrintStatus("Connected to: ", ConsoleColor.Green, $"{url}");
-                        PrintStatus(" status=", statusCodeColor, $"{(int)response.StatusCode}/{response.ReasonPhrase}");
+                        PrintStatus("Connected to ", ConsoleColor.Green, $"{url}");
+                        PrintStatus(": status=", statusCodeColor, $"{(int)response.StatusCode}/{response.ReasonPhrase}");
                         PrintStatus(" method=", ConsoleColor.Green, httpMethod);
                         PrintStatus(" time=", ConsoleColor.Green, $"{stopwatch.ElapsedMilliseconds}ms");
-                        PrintStatus(" bytes=", ConsoleColor.Green, response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0\n");
+                        PrintStatus(" bytes=", ConsoleColor.Green, response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0");
+                        Console.WriteLine();
 
                         await Task.Delay(1000);
                         if (Console.KeyAvailable && Console.ReadKey(intercept: true).Key == ConsoleKey.Q && (ConsoleModifiers.Control & ConsoleModifiers.Control) != 0)
@@ -123,7 +124,6 @@ namespace l7ping
 
         static void PrintStatus(string statusName, ConsoleColor col, string status)
         {
-
             Console.Write(statusName);
             Console.ForegroundColor = col;
             Console.Write(status);
