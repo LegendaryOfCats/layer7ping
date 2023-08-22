@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
+
 namespace l7ping {
   class Program {
     private static bool stp = false;
@@ -13,8 +8,7 @@ namespace l7ping {
     private static Dictionary < HttpStatusCode, int > statusCodeCounts = new Dictionary < HttpStatusCode, int > ();
 
     static async Task Main(string[] args) {
-      string executableName = Assembly.GetEntryAssembly().GetName().Name;
-
+      string executableName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
       if (args.Length < 1) {
         Console.WriteLine($"Usage: {executableName} <URL> [HTTP METHOD]");
         return;
@@ -69,28 +63,12 @@ namespace l7ping {
 
             ConsoleColor statusCodeColor = GetStatusCodeColor(response.StatusCode);
 
-            Console.Write("Connected to ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(url);
-            Console.ResetColor();
-            Console.Write($": status=");
-            Console.ForegroundColor = statusCodeColor;
-            Console.Write($"{(int)response.StatusCode}/{response.ReasonPhrase}");
-            Console.ResetColor();
-            Console.Write($" method=");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(httpMethod);
-            Console.ResetColor();
-            Console.Write($" time=");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"{stopwatch.ElapsedMilliseconds}ms");
-            Console.ResetColor();
-            Console.Write($" bytes=");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0");
-            Console.ResetColor();
+            PrintStatus("Connected to: ", ConsoleColor.Green, $"{url}");
+            PrintStatus(" status=",statusCodeColor, $"{(int)response.StatusCode}/{response.ReasonPhrase}");
+            PrintStatus(" method=",ConsoleColor.Green, httpMethod);
+            PrintStatus(" time=", ConsoleColor.Green, $"{stopwatch.ElapsedMilliseconds}ms");
+            PrintStatus(" bytes=", ConsoleColor.Green, response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0\n");
 
-            Console.WriteLine();
             await Task.Delay(1000);
             if (Console.KeyAvailable && Console.ReadKey(intercept: true).Key == ConsoleKey.Q && (ConsoleModifiers.Control & ConsoleModifiers.Control) != 0) {
               stp = true;
@@ -120,6 +98,21 @@ namespace l7ping {
         return ConsoleColor.Yellow;
       else
         return ConsoleColor.Red;
+    }
+
+    static void PrintStatus(string statusName, ConsoleColor col, string status) {
+        if (string.IsNullOrEmpty(statusName)){
+            Console.Write(" Status Unknown=");
+        }else{
+            Console.Write(statusName);
+        }
+        Console.ForegroundColor = col;
+        if (string.IsNullOrEmpty(status)){
+            Console.Write("unknown");
+        }else{
+            Console.Write(status);
+        }
+        Console.ResetColor();
     }
 
     static async Task < HttpResponseMessage > ExecuteRequestAsync(HttpClient client, string url, HttpMethod method) {
