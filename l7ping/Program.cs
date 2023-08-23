@@ -156,11 +156,12 @@ namespace l7ping
                 HttpRequestMessage request = new HttpRequestMessage(method, url);
                 return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             }
-            catch (OperationCanceledException)
-            {
+            catch (OperationCanceledException){
                 return new HttpResponseMessage(HttpStatusCode.RequestTimeout);
             }
-            catch (HttpRequestException){return null;}
+            catch (HttpRequestException){
+                return new HttpResponseMessage(HttpStatusCode.RequestTimeout);
+            }
         }
     }
 }
