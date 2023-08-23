@@ -42,7 +42,7 @@ namespace l7ping
             {
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestVersion = HttpVersion.Version20;
-                Console.WriteLine($"layer7ping v1.4 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
+                Console.WriteLine($"layer7ping v1.55 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
 
                 try
                 {
