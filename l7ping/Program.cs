@@ -159,7 +159,7 @@ namespace l7ping
             catch (OperationCanceledException){
                 return new HttpResponseMessage(HttpStatusCode.RequestTimeout);
             }
-            catch (HttpRequestException){
+            catch (HttpRequestException) {
                 return new HttpResponseMessage(HttpStatusCode.RequestTimeout);
             }
         }
