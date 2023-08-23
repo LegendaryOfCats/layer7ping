@@ -25,7 +25,8 @@ namespace l7ping
             }
             string httpMethod = args.Length > 1 ? args[1].ToUpper() : "GET";
 
-            Console.CancelKeyPress += (sender, e) => {
+            Console.CancelKeyPress += (sender, e) =>
+            {
                 stp = true;
                 e.Cancel = true;
             };
@@ -41,10 +42,12 @@ namespace l7ping
             {
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestVersion = HttpVersion.Version20;
-                Console.WriteLine($"layer7ping v1.5 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
+                Console.WriteLine($"layer7ping v1.4 - Copyright (c) 2023 NetworkLayer\n\nEstablishing connection to {url} using {httpMethod}\n");
 
                 try
                 {
+                    int consecutiveTimeouts = 0;
+
                     while (!stp)
                     {
                         sentRequests++;
@@ -74,26 +77,39 @@ namespace l7ping
                             statusCodeCounts[response.StatusCode] = 1;
                         }
 
-                        ConsoleColor statusCodeColor = GetStatusCodeColor(response.StatusCode);
+                        if (response.StatusCode == HttpStatusCode.RequestTimeout)
+                        {
+                            consecutiveTimeouts++;
+                            if (consecutiveTimeouts >= 100)
+                            {
+                                Console.WriteLine("Failed to accept a request within 100 consecutive requests.");
+                                break;
+                            }
 
-                        PrintStatus("Connected to ", ConsoleColor.Green, $"{url}");
-                        PrintStatus(": status=", statusCodeColor, $"{(int)response.StatusCode}/{response.ReasonPhrase}");
-                        PrintStatus(" method=", ConsoleColor.Green, httpMethod);
-                        PrintStatus(" time=", ConsoleColor.Green, $"{stopwatch.ElapsedMilliseconds}ms");
-                        PrintStatus(" bytes=", ConsoleColor.Green, response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0");
-                        Console.WriteLine();
+                            PrintStatus("", ConsoleColor.Red, "Request timed out.");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            consecutiveTimeouts = 0;
 
-                        await Task.Delay(1000);
+                            ConsoleColor statusCodeColor = GetStatusCodeColor(response.StatusCode);
+
+                            PrintStatus("Connected to ", ConsoleColor.Green, $"{url}");
+                            PrintStatus(": status=", statusCodeColor, $"{(int)response.StatusCode}/{response.ReasonPhrase}");
+                            PrintStatus(" method=", ConsoleColor.Green, httpMethod);
+                            PrintStatus(" time=", ConsoleColor.Green, $"{stopwatch.ElapsedMilliseconds}ms");
+                            PrintStatus(" bytes=", ConsoleColor.Green, response.Content.Headers.ContentLength.HasValue ? response.Content.Headers.ContentLength.Value.ToString() : "0");
+                            Console.WriteLine();
+
+                            await Task.Delay(1000);
+                        }
                         if (Console.KeyAvailable && Console.ReadKey(intercept: true).Key == ConsoleKey.Q && (ConsoleModifiers.Control & ConsoleModifiers.Control) != 0)
                         {
                             stp = true;
                             break;
                         }
                     }
-                }
-                catch (HttpRequestException ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
                 }
                 finally
                 {
@@ -136,15 +152,16 @@ namespace l7ping
             {
                 CancellationTokenSource cts = new CancellationTokenSource();
                 cts.CancelAfter(TimeSpan.FromSeconds(2));
-                HttpRequestMessage request = new HttpRequestMessage(method, url);
 
+                HttpRequestMessage request = new HttpRequestMessage(method, url);
                 return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             }
             catch (OperationCanceledException)
             {
                 return new HttpResponseMessage(HttpStatusCode.RequestTimeout);
             }
+            catch (HttpRequestException){return null;}
         }
     }
-
 }
+
